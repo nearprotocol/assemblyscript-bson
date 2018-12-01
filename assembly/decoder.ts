@@ -128,26 +128,26 @@ export class BSONDecoder {
  * @return {String} UTF-8 Text string
  */
 export function bin2str(bin: Uint8Array): string {
- let str = '', len = bin.length, i = 0;
- let c: i32, c2: i32, c3: i32;
+    let str = '', len = bin.length, i = 0;
+    let c: i32, c2: i32, c3: i32;
 
- while (i < len) {
-   c = bin[i];
-   if (c < 128) {
-     str += String.fromCharCode(c);
-     i++;
-   }
-   else if ((c > 191) && (c < 224)) {
-     c2 = bin[i + 1];
-     str += String.fromCharCode(((c & 31) << 6) | (c2 & 63));
-     i += 2;
-   }
-   else {
-     c2 = bin[i + 1];
-     c3 = bin[i + 2];
-     str += String.fromCharCode(((c & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63));
-     i += 3;
-   }
- }
- return str;
+    while (i < len) {
+        c = bin[i];
+        if (c < 128) {
+            str += String.fromCharCode(c);
+            i++;
+        }
+        else if ((c > 191) && (c < 224)) {
+            c2 = bin[i + 1];
+            str += String.fromCharCode(((c & 31) << 6) | (c2 & 63));
+            i += 2;
+        }
+        else {
+            c2 = bin[i + 1];
+            c3 = bin[i + 2];
+            str += String.fromCharCode(((c & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63));
+            i += 3;
+        }
+    }
+    return str;
 }
