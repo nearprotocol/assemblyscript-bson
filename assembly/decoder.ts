@@ -1,15 +1,15 @@
-declare function log(str: string): void;
+declare function logStr(str: string): void;
 
 export class BSONDecoder {
 
-    deserialize(buffer: Uint8Array, i: number = 0): void {
+    deserialize(buffer: Uint8Array, i: i32 = 0): void {
         // check size
         if (buffer.length < 5) {
             // TODO: Report errors instead of just returning
             // Document error: Size < 5 bytes
             return;
         }
-        let size = buffer[i++] | buffer[i++] << 8 | buffer[i++] << 16 | buffer[i++] << 24;
+        let size : i32 = buffer[i++] | buffer[i++] << 8 | buffer[i++] << 16 | buffer[i++] << 24;
         if (size < 5 || size > buffer.length) {
             // Document error: Size mismatch
             return;
@@ -29,7 +29,7 @@ export class BSONDecoder {
             for (; buffer[end] !== 0x00 && end < buffer.length; end++);
             if (end >= buffer.length - 1) {
                 // Document error: Illegal key name
-                return undefined;
+                return;
             }
             let name = bin2str(buffer.subarray(i, end));
             i = ++end;                      // skip terminating zero
@@ -63,7 +63,7 @@ export class BSONDecoder {
                         // BSON subtype: UUID (not supported)
                         return;
                     }
-                    this.setUint8Array(name, buffer.slice(i, i += size));    // use slice() here to get a new array
+                    this.setUint8Array(name, buffer.subarray(i, i += size));    // use slice() here to get a new array
                     break;
 
                 case 0x08:                    // BSON type: Boolean
@@ -86,39 +86,39 @@ export class BSONDecoder {
     }
 
     setString(name: string, value: string): void {
-        log(name + ":" + value);
+        logStr(name + ":" + value);
     }
 
     setBoolean(name: string, value: boolean): void {
-        log(name + ":" + value);
+        //logStr(name + ":" + value);
     }
 
     setNull(name: string): void {
-        log(name + ":null");
+        logStr(name + ":null");
     }
 
     setInteger(name: string, value: i32): void {
-        log(name + ":" + value);
+        //logStr(name + ":" + itoa(value));
     }
 
     setUint8Array(name: string, value: Uint8Array): void {
-        log(name + ":" + value);
+        //logStr(name + ":" + value);
     }
 
     pushArray(name: string): void {
-        log(name + ":[");
+        logStr(name + ":[");
     }
 
     popArray(): void {
-        log("]");
+        logStr("]");
     }
 
     pushObject(name: string): void {
-        log(name + ":{");
+        logStr(name + ":{");
     }
 
     popObject(): void {
-        log("}");
+        logStr("}");
     }
 }
 

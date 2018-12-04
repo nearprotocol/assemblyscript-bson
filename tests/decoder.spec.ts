@@ -2,7 +2,12 @@ import test from 'ava';
 import { setup, decamelize, isThrowable } from './utils/helpers';
 
 (async () => {
-  const instance = await setup('decoder');
+  try {
+    const instance = await setup('decoder');
+  } catch (e) {
+    console.log("Error loading WebAssembly module:", e);
+    throw e;
+  }
 
   for (const tests in instance) {
     const testsInstance = instance[tests];
