@@ -36,19 +36,6 @@ enum EventType {
 class BSONEvent {
     constructor(public type: EventType, public name: string, public valuePtr: usize) { }
 
-    static create<ValueType>(name: string, value: ValueType) : BSONEvent {
-        if (isString(value)) {
-            logStr("isString");
-            return new BSONEvent(EventType.String, name, changetype<usize>(value));
-        } else if (isInteger(value)) {
-            logStr("isInteger");
-            return new BSONEvent(EventType.Int, name, changetype<usize>(value));
-        } else if (isArray(value)) {
-            logStr("isArray");
-            return new BSONEvent(EventType.Bytes, name, changetype<usize>(value));
-        }
-    }
-
     getValue<T>() : T {
         return changetype<T>(this.valuePtr);
     }
@@ -62,6 +49,21 @@ class BSONEvent {
                 let intArray = new Array<i32>();
                 intArray.push(this.getValue<i32>());
                 return this.name + ": " + intArray.toString();
+            case EventType.Bool:
+                let value = this.getValue<bool>();
+                return this.name + ": " + (value ? "true" : "false");
+            case EventType.Null:
+                return this.name + ": null";
+            case EventType.PushArray:
+                return this.name + ": [";
+            case EventType.PopArray:
+                return "]";
+            case EventType.PushObject:
+                return this.name + ": {";
+            case EventType.PopObject:
+                return "}";
+            case EventType.Bytes:
+                return this.name + ": " + bytes2array(this.getValue<Uint8Array>()).toString();
             default:
                 return "<Invalid BSONEvent>"; 
         }
@@ -73,32 +75,34 @@ class BSONTestHandler {
 
     setString(name: string, value: string): void {
         logStr("setString: " + name + ": " + value);
-        this.events.push(BSONEvent.create(name, value));
+        this.events.push(new BSONEvent(EventType.String, name, changetype<usize>(value)));
     }
 
-    setBoolean(name: string, value: boolean): void {
-        this.events.push(BSONEvent.create(name, value));
+    setBoolean(name: string, value: bool): void {
+        this.events.push(new BSONEvent(EventType.Bool, name, changetype<usize>(value)));
     }
 
     setNull(name: string): void {
-        this.events.push(BSONEvent.create(name, null));
+        this.events.push(new BSONEvent(EventType.Null, name, 0));
     }
 
     setInteger(name: string, value: i32): void {
         logStr("setInteger: " + name);
         logF64(f64(value));
-        this.events.push(BSONEvent.create(name, value));
+        this.events.push(new BSONEvent(EventType.Int, name, changetype<usize>(value)));
     }
 
     setUint8Array(name: string, value: Uint8Array): void {
-        this.events.push(BSONEvent.create(name, value));
+        this.events.push(new BSONEvent(EventType.Bytes, name, changetype<usize>(value)));
     }
 
     pushArray(name: string): void {
+        logStr("pushArray " + name);
         this.events.push(new BSONEvent(EventType.PushArray, name, 0));
     }
 
     popArray(): void {
+        logStr("popArray");
         this.events.push(new BSONEvent(EventType.PopArray, "", 0));
     }
 
@@ -133,33 +137,12 @@ export class StringConversionTests {
         return handler.events.length == 1 &&
             handler.events[0].toString() == "int: 4660"; // 0x1234
     }
-  
-    /*
-      it("checks negative int32", function () {
+
+    static shouldHandleNegativeInt32(): bool {
         this.createDecoder().deserialize(hex2bin("0e00000010696e7400f6ffffff00"));
-        expect(obj).to.deep.equal({ int: -10 });
-      });
-  
-      it("checks int64", function () {
-        this.createDecoder().deserialize(hex2bin("1200000012696e7400907856341200000000"));
-        expect(obj).to.deep.equal({ int: 0x1234567890 });
-      });
-  
-      it("checks int64 > 2^53", function () {
-        this.createDecoder().deserialize(hex2bin("1200000012696e7400FFDEBC9A7856341200"));
-        expect(obj).to.deep.equal({ int: 0x123456789ABCDEFF });
-      });
-  
-      it("checks negative int64", function () {
-        this.createDecoder().deserialize(hex2bin("1200000012696e74007087a9cbedffffff00"));
-        expect(obj).to.deep.equal({ int: -78187493520 });
-      });
-  
-      it("checks double (64-bit binary floating point)", function () {
-        this.createDecoder().deserialize(hex2bin("1200000001666c6f0044174154fb21094000"));
-        expect(obj).to.deep.equal({ flo: 3.1415926535 });
-      });
-     */
+        return handler.events.length == 1 &&
+            handler.events[0].toString() == "int: -10";
+    }
   
     static shouldHandleString(): bool {
         this.createDecoder().deserialize(hex2bin("1a00000002737472000c00000048656c6c6f20576f726c640000"));
@@ -167,39 +150,65 @@ export class StringConversionTests {
             handler.events[0].toString() == "str: 'Hello World'";
     }
   
-     /*
-      it("checks UTF-8 string", function () {
+    static shouldHandleUTF8String() : bool {
         this.createDecoder().deserialize(hex2bin("17000000027374720009000000c384c396c39cc39f0000"));
-        expect(obj).to.deep.equal({ str: "\u00C4\u00D6\u00DC\u00DF" });
-      });
+        return handler.events.length == 1 &&
+            handler.events[0].toString() == "str: '" + "\u00C4\u00D6\u00DC\u00DF" + "'";
+    }
   
-      it("checks boolean", function () {
+    static shouldHandleBooleanFalse(): bool {
         this.createDecoder().deserialize(hex2bin("0c00000008626f6f6c000000"));
-        expect(obj).to.deep.equal({ bool: false });
-        obj = BSON.deserialize(hex2bin("0c00000008626f6f6c000100"));
-        expect(obj).to.deep.equal({ bool: true });
-      });
-  
-      it("checks null", function () {
+        return handler.events.length == 1 &&
+            handler.events[0].toString() == "bool: false";
+    }
+
+    static shouldHandleBooleanTrue(): bool {
+        this.createDecoder().deserialize(hex2bin("0c00000008626f6f6c000100"));
+        return handler.events.length == 1 &&
+            handler.events[0].toString() == "bool: true";
+    }
+
+    static shouldHandleNull(): bool {
         this.createDecoder().deserialize(hex2bin("0a0000000a6e756c0000"));
-        expect(obj).to.deep.equal({ nul: null });
-      });
+        return handler.events.length == 1 &&
+            handler.events[0].toString() == "nul: null";
+    }
   
-      it("checks binary", function () {
+    static shouldHandleBytes(): bool {
         this.createDecoder().deserialize(hex2bin("190000000562696e000a00000000010203040506070809ff00"));
-        expect(obj).to.deep.equal({ bin: new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8, 9, 0xFF]) });
-      });
+        return handler.events.length == 1 &&
+            handler.events[0].toString() == "bin: 1,2,3,4,5,6,7,8,9,255";
+    };
   
-      it("checks array", function () {
+    static shouldHandleArray(): bool {
         this.createDecoder().deserialize(hex2bin("2b000000046172720021000000103000fa000000103100fb000000103200fc000000103300fd0000000000"));
-        expect(obj).to.deep.equal({ arr: [0xFA, 0xFB, 0xFC, 0xFD] });
-      });
+        return handler.events.length == 6 &&
+            handler.events[0].toString() == "arr: [" &&
+            handler.events[1].toString() == "0: 250" && // 0xFA
+            handler.events[2].toString() == "1: 251" && // 0XFB
+            handler.events[3].toString() == "2: 252" && // 0xFC
+            handler.events[4].toString() == "3: 253" && // 0xFD
+            handler.events[5].toString() == "]";
+    };
   
-      it("checks array in array", function () {
+    static shouldHandleNestedArray(): bool {
         this.createDecoder().deserialize(hex2bin("4f000000046172720045000000043000210000001030001000000010310011000000103200120000001033001300000000103100fa000000103200fb000000103300fc000000103400fd0000000000"));
-        expect(obj).to.deep.equal({ arr: [[0x10, 0x11, 0x12, 0x13], 0xFA, 0xFB, 0xFC, 0xFD] });
-      });
+        return handler.events.length == 12 &&
+            handler.events[0].toString() == "arr: [" &&
+            handler.events[1].toString() == "0: [" &&
+            handler.events[2].toString() == "0: 16" && // 0x10
+            handler.events[3].toString() == "1: 17" && // 0X11
+            handler.events[4].toString() == "2: 18" && // 0x12
+            handler.events[5].toString() == "3: 19" && // 0x13
+            handler.events[6].toString() == "]" &&
+            handler.events[7].toString() == "1: 250" && // 0xFA
+            handler.events[8].toString() == "2: 251" && // 0XFB
+            handler.events[9].toString() == "3: 252" && // 0xFC
+            handler.events[10].toString() == "4: 253" && // 0xFD
+            handler.events[11].toString() == "]";
+    }
   
+    /*
       it("checks object", function () {
         this.createDecoder().deserialize(hex2bin("22000000036f626a001800000010696e74000a000000027374720001000000000000"));
         expect(obj).to.deep.equal({ obj: { int: 10, str: "" } });
