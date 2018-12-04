@@ -87,6 +87,9 @@ function buildImports(name: string, memory: WebAssembly.Memory): ImportEntries {
       logStr(msgPtr: number) {
         if (msgPtr) console.log(`[str]: ${ getString(msgPtr, buffer) }`);
       },
+      logF64(value: number) {
+        console.log(`[f64]: ${ value }`);
+      },
     },
     [name]: {
       logF64(value: number) {

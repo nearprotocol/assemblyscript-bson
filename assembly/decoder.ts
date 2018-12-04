@@ -1,6 +1,10 @@
-declare function logStr(str: string): void;
 
-export class BSONDecoder {
+export class BSONDecoder<BSONHandler> {
+    handler: BSONHandler;
+
+    constructor(handler: BSONHandler) {
+        this.handler = handler;
+    }
 
     deserialize(buffer: Uint8Array, i: i32 = 0): void {
         // check size
@@ -83,42 +87,6 @@ export class BSONDecoder {
                     return;
             }
         }
-    }
-
-    setString(name: string, value: string): void {
-        logStr(name + ":" + value);
-    }
-
-    setBoolean(name: string, value: boolean): void {
-        //logStr(name + ":" + value);
-    }
-
-    setNull(name: string): void {
-        logStr(name + ":null");
-    }
-
-    setInteger(name: string, value: i32): void {
-        //logStr(name + ":" + itoa(value));
-    }
-
-    setUint8Array(name: string, value: Uint8Array): void {
-        //logStr(name + ":" + value);
-    }
-
-    pushArray(name: string): void {
-        logStr(name + ":[");
-    }
-
-    popArray(): void {
-        logStr("]");
-    }
-
-    pushObject(name: string): void {
-        logStr(name + ":{");
-    }
-
-    popObject(): void {
-        logStr("}");
     }
 }
 

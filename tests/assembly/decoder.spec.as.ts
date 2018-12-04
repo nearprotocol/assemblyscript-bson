@@ -1,6 +1,9 @@
-import 'allocator/arena';
+import "allocator/arena";
 
 import { BSONDecoder } from "../../assembly/decoder";
+
+declare function logStr(str: string): void;
+declare function logF64(val: f64): void;
 
 /*
 let deserialize_vector = [
@@ -18,26 +21,117 @@ let deserialize_vector = [
     },
 ];
 */
+enum EventType {
+    String = 1,
+    Bytes = 2,
+    Int = 3,
+    Bool = 4,
+    Null = 5,
+    PushArray = 6,
+    PopArray = 7,
+    PushObject = 8,
+    PopObject = 9
+}
 
-export class StringConversionTests {
-    static shouldConvertToDecimalString1(): bool {
-        return false;
+class BSONEvent {
+    constructor(public type: EventType, public name: string, public valuePtr: usize) { }
+
+    static create<ValueType>(name: string, value: ValueType) : BSONEvent {
+        if (isString(value)) {
+            logStr("isString");
+            return new BSONEvent(EventType.String, name, changetype<usize>(value));
+        } else if (isInteger(value)) {
+            logStr("isInteger");
+            return new BSONEvent(EventType.Int, name, changetype<usize>(value));
+        } else if (isArray(value)) {
+            logStr("isArray");
+            return new BSONEvent(EventType.Bytes, name, changetype<usize>(value));
+        }
     }
 
-    static createDecoder(): BSONDecoder {
-        return new BSONDecoder();
+    getValue<T>() : T {
+        return changetype<T>(this.valuePtr);
+    }
+
+    toString(): string {
+        switch (this.type) {
+            case EventType.String:
+                return this.name + ": " + "'" + this.getValue<string>() + "'";
+            case EventType.Int:
+                // TODO: Should be some easy way to convert int to string
+                let intArray = new Array<i32>();
+                intArray.push(this.getValue<i32>());
+                return this.name + ": " + intArray.toString();
+            default:
+                return "<Invalid BSONEvent>"; 
+        }
+    }
+}
+
+class BSONTestHandler {
+    events: Array<BSONEvent> = new Array<BSONEvent>();
+
+    setString(name: string, value: string): void {
+        logStr("setString: " + name + ": " + value);
+        this.events.push(BSONEvent.create(name, value));
+    }
+
+    setBoolean(name: string, value: boolean): void {
+        this.events.push(BSONEvent.create(name, value));
+    }
+
+    setNull(name: string): void {
+        this.events.push(BSONEvent.create(name, null));
+    }
+
+    setInteger(name: string, value: i32): void {
+        logStr("setInteger: " + name);
+        logF64(f64(value));
+        this.events.push(BSONEvent.create(name, value));
+    }
+
+    setUint8Array(name: string, value: Uint8Array): void {
+        this.events.push(BSONEvent.create(name, value));
+    }
+
+    pushArray(name: string): void {
+        this.events.push(new BSONEvent(EventType.PushArray, name, 0));
+    }
+
+    popArray(): void {
+        this.events.push(new BSONEvent(EventType.PopArray, "", 0));
+    }
+
+    pushObject(name: string): void {
+        this.events.push(new BSONEvent(EventType.PushObject, name, 0));
+    }
+
+    popObject(): void {
+        this.events.push(new BSONEvent(EventType.PopObject, "", 0));
+    }
+}
+
+let handler : BSONTestHandler = new BSONTestHandler();
+
+export class StringConversionTests {
+
+    static setUp(): void {
+        handler.events = new Array<BSONEvent>();
+    }
+
+    static createDecoder(): BSONDecoder<BSONTestHandler> {
+        return new BSONDecoder(handler);
     }
 
     static shouldHandleEmptyObject(): bool {
         this.createDecoder().deserialize(hex2bin("0500000000"));
-        // expect(obj).to.deep.equal({ });
-        return true;
+        return handler.events.length == 0
     }
   
     static shouldHandleInt32(): bool {
         this.createDecoder().deserialize(hex2bin("0e00000010696e74003412000000"));
-        //expect(obj).to.deep.equal({ int: 0x1234 });
-        return true;
+        return handler.events.length == 1 &&
+            handler.events[0].toString() == "int: 4660"; // 0x1234
     }
   
     /*
@@ -69,8 +163,8 @@ export class StringConversionTests {
   
     static shouldHandleString(): bool {
         this.createDecoder().deserialize(hex2bin("1a00000002737472000c00000048656c6c6f20576f726c640000"));
-        // expect(obj).to.deep.equal({ str: "Hello World" });
-        return true;
+        return handler.events.length == 1 &&
+            handler.events[0].toString() == "str: 'Hello World'";
     }
   
      /*
@@ -147,6 +241,20 @@ export class StringConversionTests {
       });
 
     */
+}
+
+function logEvents(): void {
+    for (let i = 0; i < handler.events.length; i++) {
+        logStr("events:" + handler.events[i].toString());
+    }
+}
+
+function bytes2array(typedArr: Uint8Array): Array<u8> {
+    let arr = new Array<u8>();
+    for (let i = 0; i < typedArr.length; i++) {
+        arr.push(typedArr[i]);
+    }
+    return arr;
 }
 
 function hex2bin(hex: string): Uint8Array {
