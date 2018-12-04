@@ -9,7 +9,7 @@ export class BSONDecoder {
             // Document error: Size < 5 bytes
             return;
         }
-        let size : i32 = buffer[i++] | buffer[i++] << 8 | buffer[i++] << 16 | buffer[i++] << 24;
+        let size : i32 = buffer[i++] | i32(buffer[i++]) << 8 | i32(buffer[i++]) << 16 | i32(buffer[i++]) << 24;
         if (size < 5 || size > buffer.length) {
             // Document error: Size mismatch
             return;
@@ -36,46 +36,46 @@ export class BSONDecoder {
 
             switch (elementType) {
                 case 0x02:                    // BSON type: String
-                    size = buffer[i++] | buffer[i++] << 8 | buffer[i++] << 16 | buffer[i++] << 24;
-                    this.setString(name, bin2str(buffer.subarray(i, i += size - 1)));
+                    size = buffer[i++] | i32(buffer[i++]) << 8 | i32(buffer[i++]) << 16 | i32(buffer[i++]) << 24;
+                    this.handler.setString(name, bin2str(buffer.subarray(i, i += size - 1)));
                     i++;
                     break;
 
                 case 0x03:                    // BSON type: Document (Object)
-                    size = buffer[i] | buffer[i + 1] << 8 | buffer[i + 2] << 16 | buffer[i + 3] << 24;
-                    this.pushObject(name);
+                    size = buffer[i] | i32(buffer[i + 1]) << 8 | i32(buffer[i + 2]) << 16 | i32(buffer[i + 3]) << 24;
+                    this.handler.pushObject(name);
                     this.deserialize(buffer, i);
-                    this.popObject();
+                    this.handler.popObject();
                     i += size;
                     break;
 
                 case 0x04:                    // BSON type: Array
-                    size = buffer[i] | buffer[i + 1] << 8 | buffer[i + 2] << 16 | buffer[i + 3] << 24;  // NO 'i' increment since the size bytes are reread during the recursion
-                    this.pushArray(name);
+                    size = buffer[i] | i32(buffer[i + 1]) << 8 | i32(buffer[i + 2]) << 16 | i32(buffer[i + 3]) << 24;  // NO 'i' increment since the size bytes are reread during the recursion
+                    this.handler.pushArray(name);
                     this.deserialize(buffer, i);
-                    this.popArray();
+                    this.handler.popArray();
                     i += size;
                     break;
 
                 case 0x05:                    // BSON type: Binary data
-                    size = buffer[i++] | buffer[i++] << 8 | buffer[i++] << 16 | buffer[i++] << 24;
+                    size = buffer[i++] | i32(buffer[i++]) << 8 | i32(buffer[i++]) << 16 | i32(buffer[i++]) << 24;
                     if (buffer[i++] === 0x04) {
                         // BSON subtype: UUID (not supported)
-                        return;
+                        return
                     }
-                    this.setUint8Array(name, buffer.subarray(i, i += size));    // use slice() here to get a new array
+                    this.handler.setUint8Array(name, buffer.subarray(i, i += size));    // use slice() here to get a new array
                     break;
 
                 case 0x08:                    // BSON type: Boolean
-                    this.setBoolean(name, buffer[i++] === 1);
+                    this.handler.setBoolean(name, buffer[i++] === 1);
                     break;
 
                 case 0x0A:                    // BSON type: Null
-                    this.setNull(name);
+                    this.handler.setNull(name);
                     break;
 
                 case 0x10:                    // BSON type: 32-bit integer
-                    this.setInteger(name, buffer[i++] | buffer[i++] << 8 | buffer[i++] << 16 | buffer[i++] << 24);
+                    this.handler.setInteger(name, buffer[i++] | i32(buffer[i++]) << 8 | i32(buffer[i++]) << 16 | i32(buffer[i++]) << 24);
                     break;
 
                 default:
