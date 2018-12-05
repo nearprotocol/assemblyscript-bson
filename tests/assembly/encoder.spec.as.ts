@@ -70,7 +70,7 @@ export class StringConversionTests {
     static shouldHandleNestedArray(): bool {
         encoder.pushArray("arr");
         encoder.pushArray("0");
-        let innerArray : Array<i32> = [0xFA, 0xFB, 0xFC, 0xFD];
+        let innerArray : Array<i32> = [0x10, 0x11, 0x12, 0x13];
         for (let i = 0; i < innerArray.length; i++) {
             encoder.setInteger(itoa(i), innerArray[i]);
         }
@@ -80,7 +80,7 @@ export class StringConversionTests {
             encoder.setInteger(itoa(i + 1), outerArray[i]);
         }
         encoder.popArray();
-        return encodedMatches("2b000000046172720021000000103000fa000000103100fb000000103200fc000000103300fd0000000000");
+        return encodedMatches("4f000000046172720045000000043000210000001030001000000010310011000000103200120000001033001300000000103100fa000000103200fb000000103300fc000000103400fd0000000000");
     }
 
     static shouldHandleObject(): bool {
