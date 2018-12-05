@@ -208,19 +208,27 @@ export class StringConversionTests {
             handler.events[11].toString() == "]";
     }
   
-    /*
-      it("checks object", function () {
+    static shouldHandleObjects(): bool {
         this.createDecoder().deserialize(hex2bin("22000000036f626a001800000010696e74000a000000027374720001000000000000"));
-        expect(obj).to.deep.equal({ obj: { int: 10, str: "" } });
-      });
+        // expect(obj).to.deep.equal({ obj: { int: 10, str: "" } });
+        logEvents();
+        return handler.events.length == 4 &&
+            handler.events[0].toString() == "obj: {" &&
+            handler.events[1].toString() == "int: 10" &&
+            handler.events[2].toString() == "str: ''" &&
+            handler.events[3].toString() == "}";
+    }
   
-      it("checks complex objects", function () {
+    /*
+    TODO: Enable when serializer is ready
+    static shouldHandleComplexObjects(): bool {
         for (let i = 0; i < deserialize_vector.length; i++) {
-          let bson = BSON.serialize(deserialize_vector[i].obj);
-          this.createDecoder().deserialize(hex2bin(deserialize_vector[i].bson), true);
-          expect(obj).to.deep.equal(deserialize_vector[i].obj);
+            let bson = BSON.serialize(deserialize_vector[i].obj);
+            this.createDecoder().deserialize(hex2bin(deserialize_vector[i].bson), true);
+            expect(obj).to.deep.equal(deserialize_vector[i].obj);
         }
-      });
+    }
+    */
   
       it("checks document too small", function () {
         this.createDecoder().deserialize(hex2bin("04000000"));
