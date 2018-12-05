@@ -82,8 +82,16 @@ function buildImports(name: string, memory: WebAssembly.Memory): ImportEntries {
         }
       },
     },
-    // TODO: Don't hardcode support for decoder
+    // TODO: Don't hardcode support for encoder/decoder
     decoder: {
+      logStr(msgPtr: number) {
+        if (msgPtr) console.log(`[str]: ${ getString(msgPtr, buffer) }`);
+      },
+      logF64(value: number) {
+        console.log(`[f64]: ${ value }`);
+      },
+    },
+    encoder: {
       logStr(msgPtr: number) {
         if (msgPtr) console.log(`[str]: ${ getString(msgPtr, buffer) }`);
       },

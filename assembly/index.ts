@@ -1,5 +1,4 @@
 import { BSONDecoder } from './decoder';
+import { BSONEncoder } from './encoder';
 
-export function add(a: i32, b: i32): i32 {
-  return a + b;
-}
+export { BSONDecoder, BSONEncoder };
