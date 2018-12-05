@@ -1,7 +1,8 @@
 # assemblyscript-bson
 
-BSON encoder / decoder for AssemblyScript somewhat based on https://github.com/mpaland/bsonfy
-Special thanks to https://github.com/MaxGraey/bignum.wasm for basic unit testing infra.
+BSON encoder / decoder for AssemblyScript somewhat based on https://github.com/mpaland/bsonfy.
+
+Special thanks to https://github.com/MaxGraey/bignum.wasm for basic unit testing infra for AssemblyScript.
 
 # Limitations
 
