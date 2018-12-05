@@ -8,7 +8,7 @@ Special thanks to https://github.com/MaxGraey/bignum.wasm for basic unit testing
 
 This is developed for use in smart contracts written in AssemblyScript for https://github.com/nearprotocol/nearcore.
 This imposes such limitations:
-- Only limted data types are supported:
+- Only limited data types are supported:
     - arrays
     - objects
     - 32-bit integers
