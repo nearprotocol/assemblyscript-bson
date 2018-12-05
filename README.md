@@ -28,7 +28,7 @@ Note that this mostly just defines the way it's currently implemented. Contribut
 ```ts
 // Make sure memory allocator is available
 import "allocator/arena";
-// Import decoder
+// Import encoder
 import { BSONEncoder } from "path/to/module";
 
 // Create encoder
