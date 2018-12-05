@@ -1,4 +1,6 @@
-const START_SIZE = 1024; // TODO: Use reasonable size which has to grow during tests
+const START_SIZE = 32;
+// Growth should be aggressive as we don't free old buffer
+const GROWTH_MULT = 2;
 
 declare function logStr(str: string): void;
 declare function logF64(val: f64): void;
@@ -98,7 +100,7 @@ export class BSONEncoder {
 
     private int32(num: i32, offset: i32 = -1): void {
         if (offset == -1) {
-            // TODO: Grow buffer if needed
+            this.growIfNeeded(4);
             offset = this.writeIndex;
             this.writeIndex += 4;
         }
@@ -109,8 +111,20 @@ export class BSONEncoder {
     }
 
     private writeByte(b: u32): void {
-        // TODO: Grow buffer if needed
+        this.growIfNeeded(1);
         this.buffer[this.writeIndex++] = b;
+    }
+
+    private growIfNeeded(numBytes: i32): void {
+        if (this.buffer.length >= this.writeIndex + numBytes) {
+            return;
+        }
+
+        let oldBuffer = this.buffer;
+        this.buffer = new Uint8Array(this.buffer.length * GROWTH_MULT);
+        for (let i = 0; i < oldBuffer.length; i++) {
+            this.buffer[i] = oldBuffer[i];
+        }
     }
 }
 
