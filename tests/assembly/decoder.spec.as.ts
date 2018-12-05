@@ -74,7 +74,6 @@ class BSONTestHandler {
     events: Array<BSONEvent> = new Array<BSONEvent>();
 
     setString(name: string, value: string): void {
-        logStr("setString: " + name + ": " + value);
         this.events.push(new BSONEvent(EventType.String, name, changetype<usize>(value)));
     }
 
@@ -87,8 +86,6 @@ class BSONTestHandler {
     }
 
     setInteger(name: string, value: i32): void {
-        logStr("setInteger: " + name);
-        logF64(f64(value));
         this.events.push(new BSONEvent(EventType.Int, name, changetype<usize>(value)));
     }
 
@@ -97,12 +94,10 @@ class BSONTestHandler {
     }
 
     pushArray(name: string): void {
-        logStr("pushArray " + name);
         this.events.push(new BSONEvent(EventType.PushArray, name, 0));
     }
 
     popArray(): void {
-        logStr("popArray");
         this.events.push(new BSONEvent(EventType.PopArray, "", 0));
     }
 
@@ -210,8 +205,6 @@ export class StringConversionTests {
   
     static shouldHandleObjects(): bool {
         this.createDecoder().deserialize(hex2bin("22000000036f626a001800000010696e74000a000000027374720001000000000000"));
-        // expect(obj).to.deep.equal({ obj: { int: 10, str: "" } });
-        logEvents();
         return handler.events.length == 4 &&
             handler.events[0].toString() == "obj: {" &&
             handler.events[1].toString() == "int: 10" &&
@@ -230,34 +223,34 @@ export class StringConversionTests {
     }
     */
   
-      it("checks document too small", function () {
+    static shouldCheckDocumentTooSmall(): bool {
         this.createDecoder().deserialize(hex2bin("04000000"));
-        expect(obj).to.equal(undefined);
-      });
+        return handler.events.length == 0;
+    }
   
-      it("checks document termination", function () {
+    static shouldCheckDocumentTermination1() : bool {
         this.createDecoder().deserialize(hex2bin("0c00000008626f6f6c000001"));
-        expect(obj).to.equal(undefined);
-        obj = BSON.deserialize(hex2bin("0c00000008626f6f6c0000"));
-        expect(obj).to.equal(undefined);
-      });
+        return handler.events.length == 0;
+    }
+    static shouldCheckDocumentTermination2() : bool {
+        this.createDecoder().deserialize(hex2bin("0c00000008626f6f6c0000"));
+        return handler.events.length == 0;
+    }
   
-      it("checks document size mismatch", function () {
+    static shouldCheckDocumentSizeMismatch() : bool {
         this.createDecoder().deserialize(hex2bin("0d00000008626f6f6c000000"));
-        expect(obj).to.equal(undefined);
-      });
+        return handler.events.length == 0;
+    }
   
-      it("checks illegal keyname", function () {
+    static shouldCheckIllegalKeyname() : bool {
         this.createDecoder().deserialize(hex2bin("0c00000008626f6f6c010100"));
-        expect(obj).to.equal(undefined);
-      });
+        return handler.events.length == 0;
+    }
   
-      it("checks unknown element", function () {
+    static shouldCheckUnknownElement() : bool {
         this.createDecoder().deserialize(hex2bin("0c00000018626f6f6c000000"));
-        expect(obj).to.equal(undefined);
-      });
-
-    */
+        return handler.events.length == 0;
+    }
 }
 
 function logEvents(): void {
