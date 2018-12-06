@@ -47,16 +47,18 @@ export class BSONDecoder<BSONHandler> {
 
                 case 0x03:                    // BSON type: Document (Object)
                     size = buffer[i] | i32(buffer[i + 1]) << 8 | i32(buffer[i + 2]) << 16 | i32(buffer[i + 3]) << 24;
-                    this.handler.pushObject(name);
-                    this.deserialize(buffer, i);
+                    if (this.handler.pushObject(name)) {
+                        this.deserialize(buffer, i);
+                    }
                     this.handler.popObject();
                     i += size;
                     break;
 
                 case 0x04:                    // BSON type: Array
                     size = buffer[i] | i32(buffer[i + 1]) << 8 | i32(buffer[i + 2]) << 16 | i32(buffer[i + 3]) << 24;  // NO 'i' increment since the size bytes are reread during the recursion
-                    this.handler.pushArray(name);
-                    this.deserialize(buffer, i);
+                    if (this.handler.pushArray(name)) {
+                        this.deserialize(buffer, i);
+                    }
                     this.handler.popArray();
                     i += size;
                     break;

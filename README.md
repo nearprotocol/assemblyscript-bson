@@ -75,16 +75,18 @@ class BSONEventsHandler {
         // Handle field
     }
 
-    pushArray(name: string): void {
+    pushArray(name: string): bool {
         // Handle array start
+        return true; // true means that nested object needs to be traversed, false otherwise
     }
 
     popArray(): void {
         // Handle array end
     }
 
-    pushObject(name: string): void {
+    pushObject(name: string): bool {
         // Handle object start
+        return true; // true means that nested object needs to be traversed, false otherwise
     }
 
     popObject(): void {

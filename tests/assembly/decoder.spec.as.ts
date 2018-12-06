@@ -93,16 +93,18 @@ class BSONTestHandler {
         this.events.push(new BSONEvent(EventType.Bytes, name, changetype<usize>(value)));
     }
 
-    pushArray(name: string): void {
+    pushArray(name: string): bool {
         this.events.push(new BSONEvent(EventType.PushArray, name, 0));
+        return true;
     }
 
     popArray(): void {
         this.events.push(new BSONEvent(EventType.PopArray, "", 0));
     }
 
-    pushObject(name: string): void {
+    pushObject(name: string): bool {
         this.events.push(new BSONEvent(EventType.PushObject, name, 0));
+        return true;
     }
 
     popObject(): void {
