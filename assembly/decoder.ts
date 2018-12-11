@@ -1,8 +1,44 @@
 
-export class BSONDecoder<BSONHandler> {
-    handler: BSONHandler;
 
-    constructor(handler: BSONHandler) {
+/**
+ * Extend from this class to handle events from parser.
+ * Default implementation traverses whole object tree and does nothing.
+ */
+export abstract class BSONHandler {
+    setString(name: string, value: string): void {
+    }
+
+    setBoolean(name: string, value: bool): void {
+    }
+
+    setNull(name: string): void {
+    }
+
+    setInteger(name: string, value: i32): void {
+    }
+
+    setUint8Array(name: string, value: Uint8Array): void {
+    }
+
+    pushArray(name: string): bool {
+        return true;
+    }
+
+    popArray(): void {
+    }
+
+    pushObject(name: string): bool {
+        return true;
+    }
+
+    popObject(): void {
+    }
+}
+
+export class BSONDecoder<BSONHandlerT extends BSONHandler> {
+    handler: BSONHandlerT;
+
+    constructor(handler: BSONHandlerT) {
         this.handler = handler;
     }
 

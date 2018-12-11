@@ -1,6 +1,6 @@
 import "allocator/arena";
 
-import { BSONDecoder } from "../../assembly/decoder";
+import { BSONDecoder, BSONHandler } from "../../assembly/decoder";
 
 declare function logStr(str: string): void;
 declare function logF64(val: f64): void;
@@ -70,7 +70,7 @@ class BSONEvent {
     }
 }
 
-class BSONTestHandler {
+class BSONTestHandler extends BSONHandler {
     events: Array<BSONEvent> = new Array<BSONEvent>();
 
     setString(name: string, value: string): void {

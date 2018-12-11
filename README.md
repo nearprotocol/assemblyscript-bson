@@ -51,10 +51,11 @@ let bson: Uint8Array = encoder.serialize();
 // Make sure memory allocator is available
 import "allocator/arena";
 // Import decoder
-import { BSONDecoder } from "path/to/module";
+import { BSONDecoder, BSONHandler } from "path/to/module";
 
-// Events need to be received by custom object looking like this:
-class BSONEventsHandler {
+// Events need to be received by custom object extending BSONHandler.
+// NOTE: All methods are optional to implement.
+class BSONEventsHandler extends BSONHandler {
     setString(name: string, value: string): void {
         // Handle field
     }
