@@ -55,7 +55,7 @@ import { BSONDecoder, BSONHandler } from "path/to/module";
 
 // Events need to be received by custom object extending BSONHandler.
 // NOTE: All methods are optional to implement.
-class BSONEventsHandler extends BSONHandler {
+class MyBSONEventsHandler extends BSONHandler {
     setString(name: string, value: string): void {
         // Handle field
     }
@@ -96,13 +96,13 @@ class BSONEventsHandler extends BSONHandler {
 }
 
 // Create decoder
-let decoder = new BSONDecoder<BSONEventsHandler>(new BSONEventsHandler());
+let decoder = new BSONDecoder<MyBSONEventsHandler>(new MyBSONEventsHandler());
 
 // Let's assume BSON data is available in this variable
 let bson: Uint8Array = ...;
 
 // Parse BSON
-decoder.deserialize(bson); // This will send events to BSONEventsHandler
+decoder.deserialize(bson); // This will send events to MyBSONEventsHandler
 
 ```
 
