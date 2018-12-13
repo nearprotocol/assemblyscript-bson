@@ -43,21 +43,11 @@ export class BSONDecoder<BSONHandlerT extends BSONHandler> {
     }
 
     deserialize(buffer: Uint8Array, i: i32 = 0): void {
-        // check size
-        if (buffer.length < 5) {
-            // TODO: Report errors instead of just returning
-            // Document error: Size < 5 bytes
-            return;
-        }
+        assert(buffer.length > 5, "Document error: Size < 5 bytes");
+
         let size : i32 = buffer[i++] | i32(buffer[i++]) << 8 | i32(buffer[i++]) << 16 | i32(buffer[i++]) << 24;
-        if (size < 5 || size > buffer.length) {
-            // Document error: Size mismatch
-            return;
-        }
-        if (buffer[buffer.length - 1] !== 0x00) {
-            // Document error: Missing termination
-            return;
-        }
+        assert(size > 5 && size <= buffer.length, "Document error: Size mismatch");
+        assert(buffer[buffer.length - 1] == 0x00, "Document error: Missing termination");
 
         for (; ;) {
             // get element type
@@ -67,10 +57,7 @@ export class BSONDecoder<BSONHandlerT extends BSONHandler> {
             // get element name
             let end = i;
             for (; buffer[end] !== 0x00 && end < buffer.length; end++);
-            if (end >= buffer.length - 1) {
-                // Document error: Illegal key name
-                return;
-            }
+            assert(end < buffer.length - 1, "Document error: Illegal key name");
             let name = bin2str(buffer.subarray(i, end));
             i = ++end;                      // skip terminating zero
 
@@ -121,8 +108,7 @@ export class BSONDecoder<BSONHandlerT extends BSONHandler> {
                     break;
 
                 default:
-                    // Parsing error: Unknown element
-                    return;
+                    assert(false, "Parsing error: Unknown element");
             }
         }
     }
