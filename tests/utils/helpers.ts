@@ -18,10 +18,6 @@ const readFile = util.promisify(fs.readFile);
 const F64 = new Float64Array(1);
 const U64 = new Uint32Array(F64.buffer);
 
-export function isThrowable(name: string): boolean {
-  return name.toLowerCase().includes('throwable');
-}
-
 export function decamelize(str: string): string {
   const t = str
     .replace(DIGITALS_REGEXP, ' $1')

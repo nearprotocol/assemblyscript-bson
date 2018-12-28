@@ -225,33 +225,27 @@ export class StringConversionTests {
     }
     */
   
-    static shouldCheckDocumentTooSmall(): bool {
+    static shouldAbortDocumentTooSmall(): void {
         this.createDecoder().deserialize(hex2bin("04000000"));
-        return handler.events.length == 0;
     }
   
-    static shouldCheckDocumentTermination1() : bool {
+    static shouldAbortDocumentTermination1(): void {
         this.createDecoder().deserialize(hex2bin("0c00000008626f6f6c000001"));
-        return handler.events.length == 0;
     }
-    static shouldCheckDocumentTermination2() : bool {
+    static shouldAbortDocumentTermination2(): void {
         this.createDecoder().deserialize(hex2bin("0c00000008626f6f6c0000"));
-        return handler.events.length == 0;
     }
   
-    static shouldCheckDocumentSizeMismatch() : bool {
+    static shouldAbortDocumentSizeMismatch(): void {
         this.createDecoder().deserialize(hex2bin("0d00000008626f6f6c000000"));
-        return handler.events.length == 0;
     }
   
-    static shouldCheckIllegalKeyname() : bool {
+    static shouldAbortIllegalKeyname(): void {
         this.createDecoder().deserialize(hex2bin("0c00000008626f6f6c010100"));
-        return handler.events.length == 0;
     }
   
-    static shouldCheckUnknownElement() : bool {
+    static shouldAbortUnknownElement(): void {
         this.createDecoder().deserialize(hex2bin("0c00000018626f6f6c000000"));
-        return handler.events.length == 0;
     }
 }
 
