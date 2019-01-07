@@ -35,9 +35,47 @@ export abstract class BSONHandler {
     }
 }
 
+/**
+ * Extend from this class to handle events from parser.
+ * This implementation crashes on every unimplemented set/push method
+ * to allow easier validation of input.
+ */
+export class ThrowingBSONHandler extends BSONHandler {
+    setString(name: string, value: string): void {
+       assert(false, 'Unexpected string field ' + name + ' : "' + value + '"');
+    }
+
+    setBoolean(name: string, value: bool): void {
+       assert(false, 'Unexpected boolean field ' + name + ' : ' + (value ? 'true' : 'false'));
+    }
+
+    setNull(name: string): void {
+       assert(false, 'Unexpected null field ' + name);
+    }
+
+    setInteger(name: string, value: i32): void {
+       let arr: Array<i32> = [value];
+       assert(false, 'Unexpected integer field ' + name + ' : ' + arr.toString());
+    }
+
+    setUint8Array(name: string, value: Uint8Array): void {
+        assert(false, 'Unexpected byte array field ' + name + ' : ' + bin2str(value));
+    }
+
+    pushArray(name: string): bool {
+        assert(false, 'Unexpected array field' + name);
+        return true;
+    }
+
+    pushObject(name: string): bool {
+        assert(false, 'Unexpected object field ' + name);
+        return true;
+    }
+}
+
 export class BSONDecoder<BSONHandlerT extends BSONHandler> {
     handler: BSONHandlerT;
-    readIndex: i32;
+    readIndex: i32 = 0;
 
     constructor(handler: BSONHandlerT) {
         this.handler = handler;
